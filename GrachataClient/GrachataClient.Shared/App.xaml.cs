@@ -15,6 +15,7 @@ using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Media.Animation;
 using Windows.UI.Xaml.Navigation;
+using GrachataClient.Models;
 
 // The Blank Application template is documented at http://go.microsoft.com/fwlink/?LinkId=234227
 
@@ -25,6 +26,8 @@ namespace GrachataClient
     /// </summary>
     public sealed partial class App : Application
     {
+        public const string ApiUrl = "http://localhost:3257/ins";
+        public const string ApiToken = ApiUrl + "/Token";
 #if WINDOWS_PHONE_APP
         private TransitionCollection transitions;
 #endif
@@ -38,6 +41,8 @@ namespace GrachataClient
             this.InitializeComponent();
             this.Suspending += this.OnSuspending;
         }
+
+        public static TokenModel Token { get; set; }
 
         /// <summary>
         /// Invoked when the application is launched normally by the end user.  Other entry points
