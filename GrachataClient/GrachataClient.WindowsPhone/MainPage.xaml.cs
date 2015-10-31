@@ -56,6 +56,8 @@ namespace GrachataClient
             try
             {
                 var res = await client.LoginAsync(userNameTextBox.Text, passwordTextBox.Password);
+                if (res.UserName == "")
+                    return;
             }
             catch(Exception ex)
             {

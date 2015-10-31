@@ -31,11 +31,15 @@ namespace GrachataClient.Helpers
             var grantType = $"{ LoginModel.GrantTypeString }={ loginModel.GrantType}";
             var user = $"{LoginModel.UserNameString}={WebUtility.UrlEncode(loginModel.UserName)}";
             var pass = $"{LoginModel.PasswordString}={WebUtility.UrlEncode(loginModel.Password)}";
-            var callString = string.Join("&", grantType, userName, pass);
-            var LoginContent = new StringContent(callString);
+            var callString = string.Join("&", grantType, user, pass);
+            var loginContent = new StringContent(callString);
 
             return Token = await CallApiJsonClient("application/x-www-form-urlencoded", async client =>
-            await client.PostDecodeAsync<TokenModel>(TokenAddress, LoginContent));
+            {
+                var res = await client.PostDecodeAsync<TokenModel>(ApiBaseAddress + TokenAddress, loginContent);
+                client.Dispose();
+                return res;
+            });
         }
 
         public async Task<T> PostAuthorizedAsync<T>(string address, object graph)
@@ -53,7 +57,7 @@ namespace GrachataClient.Helpers
             if (Token == null)
                 return default(T);
 
-            return CallApiJsonClient<T>(client =>
+            return CallApiJsonClient(client =>
             {
                 client.DefaultRequestHeaders.Add("Authorization", string.Join(" ", Token.TokenType, Token.AccessToken));
                 return clientCallBack(client);
@@ -62,7 +66,7 @@ namespace GrachataClient.Helpers
 
         T CallApiJsonClient<T>(string contentType, Func<HttpClient, T> clientCallBack)
         {
-            return CallApiJsonClient<T>(client =>
+            return CallApiJsonClient(client =>
             {
                 client.DefaultRequestHeaders.Add("ContentType", contentType);
                 return clientCallBack(client);
@@ -71,15 +75,13 @@ namespace GrachataClient.Helpers
 
         T CallApiJsonClient<T>(Func<HttpClient, T> clientCallBack)
         {
-            using (var httpClient = new HttpClient())
-            {
-                httpClient.BaseAddress = new Uri(BaseAddress + ApiBaseAddress);
+            var httpClient = new HttpClient { BaseAddress = new Uri(BaseAddress) };
 
-                httpClient.DefaultRequestHeaders.Accept.Clear();
-                httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
-                return clientCallBack(httpClient);
-            }
+            httpClient.DefaultRequestHeaders.Accept.Clear();
+            httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+            return clientCallBack(httpClient);
         }
 
     }
